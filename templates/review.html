@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookScan - Book Review</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #FFD700; padding: 1rem 0;">
+        <div class="container">
+            <div class="navbar-brand-section d-flex align-items-center">
+                <span class="brand-main">BOOK</span>
+                <span class="brand-highlight">SCAN</span>
+            </div>
+            <div class="navbar-nav ms-auto d-flex flex-row gap-4">
+                <a class="nav-link text-dark fw-bold" href="/">HOME</a>
+                <a class="nav-link text-dark fw-bold" href="#">AI SUPPORT</a>
+                <a class="nav-link text-dark fw-bold" href="#">REVIEWS</a>
+            </div>
+            <div class="ms-4">
+                <button class="btn btn-dark px-4 py-2 fw-bold" onclick="window.location.href='/'">SEARCH NEW BOOK</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Review Content -->
+    <div class="main-container">
+        <!-- Hero Section with Book Title -->
+        <div class="hero-section">
+            <div class="container text-center">
+                <h1 id="bookTitle" class="hero-title">{{ book_name }}</h1>
+                <span id="bookCategory" class="badge bg-warning text-dark fs-5 mt-3">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Review Card -->
+        <div class="container mt-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="service-card review-card">
+                        <div class="card-content">
+                            <div id="reviewContent" class="review-text">
+                                <div class="text-center py-5">
+                                    <div class="spinner-border text-warning mb-3" role="status">
+                                        <span class="visually-hidden">Loading review...</span>
+                                    </div>
+                                    <h4 class="text-warning">Generating Comprehensive Review...</h4>
+                                    <p class="text-muted">Please wait while our AI analyzes the book</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="text-center mt-4">
+                        <button class="btn btn-warning me-3 px-4 py-2 fw-bold" onclick="window.print()">
+                            <i class="fas fa-print me-2"></i>PRINT REVIEW
+                        </button>
+                        <button class="btn btn-dark me-3 px-4 py-2 fw-bold" onclick="shareReview()">
+                            <i class="fas fa-share-alt me-2"></i>SHARE REVIEW
+                        </button>
+                        <button class="btn btn-success px-4 py-2 fw-bold" onclick="window.location.href='/'">
+                            <i class="fas fa-search me-2"></i>SEARCH ANOTHER
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load review data from sessionStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            const reviewData = JSON.parse(sessionStorage.getItem('reviewData'));
+            
+            if (reviewData) {
+                document.getElementById('bookTitle').textContent = reviewData.book_name;
+                document.getElementById('bookCategory').textContent = reviewData.category;
+                document.getElementById('bookCategory').className = 
+                    `badge fs-5 mt-3 ${reviewData.category === 'Fiction' ? 'bg-info text-white' : 'bg-warning text-dark'}`;
+                
+                // Format and display review
+                document.getElementById('reviewContent').innerHTML = formatReview(reviewData.review);
+            } else {
+                // Fallback if no data in sessionStorage
+                document.getElementById('reviewContent').innerHTML = 
+                    '<div class="alert alert-warning">No review data found. Please search for a book first.</div>';
+            }
+        });
+
+        function formatReview(reviewText) {
+            // Format the review text with proper HTML structure
+            return reviewText
+                .replace(/\*\*(.*?)\*\*/g, '<h4 class="mt-4 mb-3 text-warning border-start border-warning border-4 ps-3">$1</h4>')
+                .replace(/\n\n/g, '</p><p class="mb-3 lh-lg">')
+                .replace(/^\s*/, '<p class="mb-3 lh-lg">')
+                .replace(/\s*$/, '</p>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function shareReview() {
+            const bookName = document.getElementById('bookTitle').textContent;
+            const shareData = {
+                title: `BookScan Review: ${bookName}`,
+                text: `Check out this comprehensive AI-generated review of "${bookName}" from BookScan!`,
+                url: window.location.href
+            };
+
+            if (navigator.share) {
+                navigator.share(shareData);
+            } else {
+                // Fallback: copy to clipboard
+                navigator.clipboard.writeText(shareData.url).then(() => {
+                    alert('Review link copied to clipboard!');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
